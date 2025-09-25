@@ -1,9 +1,6 @@
-
 import oracledb
 
-# AVISOS IMPORTANTES
-#TRATAR ERROS
-
+# ------------------- FUNÇÕES DE CONEXÃO -------------------
 def get_conexao():
     try:
         conn = oracledb.connect(
@@ -17,7 +14,7 @@ def get_conexao():
         print(f"Erro ao obter a conexão❗: {e}")
     return conn
 
-# ----------------------------------------------------- PACIENTES
+# ------------------- CRIAÇÃO DE TABELAS -------------------
 def criar_tabela(conn):
     cursor = conn.cursor()
     try:
@@ -42,10 +39,9 @@ def criar_tabela(conn):
 conn = get_conexao()
 print(f"Conexão: {conn.version}")
 criar_tabela(conn)
-print("Fechando a conexão...")
 conn.close()
+# Cria a tabela PACIENTES (se não existir)
 
-# ----------------------------------------------------- CONSULTAS
 def criar_tabela_consulta(conn):
     cursor = conn.cursor()
     try:
@@ -70,10 +66,9 @@ def criar_tabela_consulta(conn):
 conn = get_conexao()
 print(f"Conexão: {conn.version}")
 criar_tabela_consulta(conn)
-print("Fechando a conexão...")
 conn.close()
+# Cria a tabela CONSULTAS (se não existir)
 
-# ----------------------------------------------------- EXAMES
 def criar_tabela_exame(conn):
     cursor = conn.cursor()
     try:
@@ -100,7 +95,9 @@ print(f"Conexão: {conn.version}")
 criar_tabela_exame(conn)
 print("Fechando a conexão...")
 conn.close()
+# Cria a tabela EXAMES (se não existir)
 
+# ------------------- INSERÇÃO DE DADOS -------------------
 def inserir_paciente(nome_paciente, cpf_paciente, idade_paciente, sexo_paciente):
     print('\n--------- Inserindo um novo paciente na tabela PACIENTES --------')
     conn = get_conexao()
@@ -127,6 +124,7 @@ def inserir_paciente(nome_paciente, cpf_paciente, idade_paciente, sexo_paciente)
     finally:
         print("Fechando opção 1...")
         conn.close()
+# Insere um novo paciente na tabela PACIENTES
 
 def inserir_consulta(nome_consulta, descricao_consulta, dataHora_consulta, id_paciente):
     print('\n---------- Inserindo um novo consulta na tabela CONSULTAS -----------')
@@ -153,6 +151,7 @@ def inserir_consulta(nome_consulta, descricao_consulta, dataHora_consulta, id_pa
     finally:
         print("Fechando opção...")
         conn.close()
+# Insere uma nova consulta na tabela CONSULTAS
 
 def inserir_exame(nome_exame, descricao_exame, dataHora_exame, id_paciente):
     print('\n---------- Inserindo um novo exame na tabela EXAMES -----------')
@@ -179,7 +178,9 @@ def inserir_exame(nome_exame, descricao_exame, dataHora_exame, id_paciente):
     finally:
         print("Fechando opção...")
         conn.close()
+# Insere um novo exame na tabela EXAMES
 
+# ------------------- LISTAGEM DE DADOS -------------------
 def listar_pacientes():
     print('\n---------- Listando os pacientes da tabela PACIENTES -----------')
     conn = get_conexao()
@@ -198,6 +199,7 @@ def listar_pacientes():
     finally:
         print("Fechando a opção...")
         conn.close()
+# Lista todos os pacientes cadastrados na tabela PACIENTES
 
 def listar_consulta():
     print('\n-------------- Listando as consultas da tabela CONSULTAS --------------')
@@ -218,6 +220,7 @@ def listar_consulta():
     finally:
         print("Fechando a opção...")
         conn.close()
+# Lista todas as consultas cadastradas na tabela CONSULTAS
 
 def listar_exames():
     print('\n-------------- Listando os exames da tabela EXAMES --------------')
@@ -238,7 +241,9 @@ def listar_exames():
     finally:
         print("Fechando a opção...")
         conn.close()
+# Lista todos os exames cadastrados na tabela EXAMES
 
+# ------------------- BUSCA POR ID -------------------
 def buscar_paciente_por_id(id_paciente):
     print('\n-------- Buscando um paciente na tabela PACIENTES pelo ID --------')
     conn = get_conexao()
@@ -258,6 +263,7 @@ def buscar_paciente_por_id(id_paciente):
     finally:
         print("Fechando a opção ...")
         conn.close()
+# Busca um paciente específico pelo ID na tabela PACIENTES
 
 def buscar_consulta_por_id(id_consulta):
     print('\n----------- Buscando uma consulta na tabela CONSULTAS pelo ID ----------')
@@ -279,6 +285,7 @@ def buscar_consulta_por_id(id_consulta):
     finally:
         print("Fechando a opção ...")
         conn.close()
+# Busca uma consulta específica pelo ID na tabela CONSULTAS
 
 def buscar_exame_por_id(id_exame):
     print('\n----------- Buscando um exame na tabela EXAMES pelo ID ----------')
@@ -300,7 +307,9 @@ def buscar_exame_por_id(id_exame):
     finally:
         print("Fechando a opção ...")
         conn.close()
+# Busca um exame específico pelo ID na tabela EXAMES
 
+# ------------------- ATUALIZAÇÃO DE DADOS -------------------
 def atualizar_pacientes(id_paciente):
     conn = get_conexao()
     if not conn:
@@ -343,6 +352,7 @@ def atualizar_pacientes(id_paciente):
         print(f"Erro ao atualizar paciente❗: {e}")
     finally:
         conn.close()
+# Atualiza os dados de um paciente existente na tabela PACIENTES
 
 def atualizar_consultas(id_consulta):
     conn = get_conexao()
@@ -393,6 +403,7 @@ def atualizar_consultas(id_consulta):
         print(f"Erro ao atualizar consulta❗: {e}")
     finally:
         conn.close()
+# Atualiza os dados de uma consulta existente na tabela CONSULTAS
 
 def atualizar_exames(id_exame):
     conn = get_conexao()
@@ -408,14 +419,12 @@ def atualizar_exames(id_exame):
         if not exame:
             print(f"Exame com ID {id_exame} não encontrado.")
             return
-        nome_atual, descricao_atual, dataHora_atual, id_exame = exame
+        nome_atual, descricao_atual, dataHora_atual = exame
     except oracledb.Error as e:
         print(f"Erro ao buscar exame❗: {e}")
         return
     finally:
         conn.close()
-
-    print("\nDeixe o campo vazio se não quiser alterar o atributo.")
 
     novo_nome = input(f"Nome atual: {nome_atual} | Novo nome: ") or nome_atual
     nova_descricao = input(f"Descrição atual: {descricao_atual} | Nova descrição: ") or descricao_atual
@@ -428,24 +437,24 @@ def atualizar_exames(id_exame):
             UPDATE EXAMES
             SET nome_exame = :nome,
             descricao_exame = :descricao,
-            dataHora_exame = TO_DATE(:dataHora, 'dd/mm/yyyy hh24:mi' ),
-            id_paciente = :id_paciente
+            dataHora_exame = TO_DATE(:dataHora, 'dd/mm/yyyy hh24:mi' )
             WHERE id_exame = :id
         """
         cursor.execute(sql, {
-
+            'id': id_exame,
             'nome': novo_nome,
             'descricao': nova_descricao,
             'dataHora': nova_data
         })
         conn.commit()
-        print(f"Exame {novo_nome} atualizado com sucesso✅!")
+        print(f"\nExame {novo_nome} atualizado com sucesso✅!")
     except oracledb.Error as e:
         print(f"Erro ao atualizar exame❗: {e}")
     finally:
         conn.close()
+# Atualiza os dados de um exame existente na tabela EXAMES
 
-
+# ------------------- DELEÇÃO DE DADOS -------------------
 def deletar_pacientes(id_paciente):
     print('\n------------ Deletando um paciente na tabela PACIENTES ---------------')
     conn = get_conexao()
@@ -462,7 +471,7 @@ def deletar_pacientes(id_paciente):
     finally:
         print("Fechando a opção ...")
         conn.close()
-
+# Remove um paciente da tabela PACIENTES
 
 def deletar_consulta(id_consulta):
     print('\n----------------- Deletando uma consulta na tabela CONSULTAS ----------------')
@@ -480,7 +489,7 @@ def deletar_consulta(id_consulta):
     finally:
         print("Fechando a opção ...")
         conn.close()
-
+# Remove uma consulta da tabela CONSULTAS
 
 def deletar_exame(id_exame):
     print('\n----------------- Deletando um exame na tabela EXAMES ----------------')
@@ -498,7 +507,9 @@ def deletar_exame(id_exame):
     finally:
         print("Fechando a opção ...")
         conn.close()
+# Remove um exame da tabela EXAMES
 
+# ------------------- MENU INTERATIVO -------------------
 def main():
     while True:
         print("\n==================================================================================")
@@ -548,7 +559,6 @@ def menu_pacientes():
         except ValueError:
             print("\nErro: Por favor, digite um número válido!")
             continue
-
         if escolha == 1:
             try:
                 nome = str(input("Nome do paciente: "))
@@ -559,7 +569,10 @@ def menu_pacientes():
             except ValueError:
                 print("\nAs informações de Usuário são Inválidas! \nPor favor Siga o padrão!")
         elif escolha == 2:
-            listar_pacientes()
+            try:
+                listar_pacientes()
+            except ValueError:
+                print("⚠️ Por favor insira um número valido.")
         elif escolha == 3:
             try:
                 id_paciente = int(input("ID do paciente: "))
@@ -583,6 +596,7 @@ def menu_pacientes():
             break
         else:
             print("Opção inválida.")
+# Submenu para gerenciar PACIENTES (inserir, listar, buscar, atualizar, deletar)
 
 def menu_consultas():
     while True:
@@ -636,6 +650,7 @@ def menu_consultas():
             break
         else:
             print("Opção inválida.")
+# Submenu para gerenciar CONSULTAS (inserir, listar, buscar, atualizar, deletar)
 
 def menu_exames():
     while True:
@@ -665,7 +680,6 @@ def menu_exames():
                 inserir_exame(nome, descricao, dataHora, id_paciente)
             except ValueError:
                 print("\nAs informações de Usuário são Inválidas! \nPor favor Siga o padrão!")
-
         elif escolha == 2:
             listar_exames()
         elif escolha == 3:
@@ -675,12 +689,9 @@ def menu_exames():
             except ValueError:
                 print("\nErro: Digite apenas numeros")
         elif escolha == 4:
-            try:
-                id_exame = int(input("ID do exame: "))
-                print("\nPara as opções que NAO deseja atualizar, deixe o campo vazio.")
-                atualizar_exames(id_exame)
-            except ValueError:
-                print("\nErro: Digite apenas numeros")
+            id_exame = int(input("ID do exame: "))
+            print("\nPara as opções que NAO deseja atualizar, deixe o campo vazio.")
+            atualizar_exames(id_exame)
         elif escolha == 5:
             try:
                 id_exame = int(input("ID do exame: "))
@@ -691,5 +702,6 @@ def menu_exames():
             break
         else:
             print("Opção inválida.")
+# Submenu para gerenciar EXAMES (inserir, listar, buscar, atualizar, deletar)
 
 main()
