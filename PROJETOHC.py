@@ -97,6 +97,34 @@ print("Fechando a conexão...")
 conn.close()
 # Cria a tabela EXAMES (se não existir)
 
+def criar_tabela_remedios(conn):
+    cursor = conn.cursor()
+    try:
+        sql = """
+            CREATE TABLE REMEDIOS (
+            id_remedio   NUMBER GENERATED ALWAYS AS IDENTITY,
+            nome         VARCHAR2(100) NOT NULL,
+            descricao    VARCHAR2(255),
+            preco        NUMBER(10,2) NOT NULL,
+            quantidade   NUMBER(5) NOT NULL,
+            CONSTRAINT pk_remedios PRIMARY KEY (id_remedio)
+            )
+        """
+        cursor.execute(sql)
+        print(f"Tabela REMEDIOS foi criada com sucesso✅!")
+    except oracledb.DatabaseError as e:
+        erro, = e.args
+        if erro.code == 955:
+            print("Tabela REMEDIOS já existe ✔️")
+        else:
+            print(f"Erro ao criar tabela ❗: {e}")
+conn = get_conexao()
+print(f"Conexão: {conn.version}")
+criar_tabela_remedios(conn)
+print("Fechando a conexão...")
+conn.close()
+# Cria a tabela REMEDIOS (se não existir)
+
 # ------------------- INSERÇÃO DE DADOS -------------------
 def inserir_paciente(nome_paciente, cpf_paciente, idade_paciente, sexo_paciente):
     print('\n--------- Inserindo um novo paciente na tabela PACIENTES --------')
@@ -180,6 +208,33 @@ def inserir_exame(nome_exame, descricao_exame, dataHora_exame, id_paciente):
         conn.close()
 # Insere um novo exame na tabela EXAMES
 
+def inserir_remedio(nome, descricao, preco, quantidade):
+    print('\n--------- Inserindo um novo remédio na tabela REMEDIOS --------')
+    conn = get_conexao()
+    if not conn:
+        return
+    try:
+        cursor = conn.cursor()
+        sql = """
+            INSERT INTO REMEDIOS (nome, descricao, preco, quantidade)
+            VALUES (:nome, :descricao, :preco, :quantidade)
+            """
+        cursor.execute(
+            sql, {
+                'nome': nome,
+                'descricao': descricao,
+                'preco': preco,
+                'quantidade': quantidade
+            })
+        conn.commit()
+        print(f'Remédio {nome} adicionado com sucesso✅!')
+    except oracledb.Error as e:
+        print(f"Erro ao inserir remédio❗: {e}")
+    finally:
+        print("Fechando opção 1...")
+        conn.close()
+# Insere um novo remédio na tabela REMEDIOS
+
 # ------------------- LISTAGEM DE DADOS -------------------
 def listar_pacientes():
     print('\n---------- Listando os pacientes da tabela PACIENTES -----------')
@@ -242,6 +297,26 @@ def listar_exames():
         print("Fechando a opção...")
         conn.close()
 # Lista todos os exames cadastrados na tabela EXAMES
+
+def listar_remedios():
+    print('\n--------- Listando os remédios da tabela REMEDIOS --------')
+    conn = get_conexao()
+    if not conn:
+        return
+    try:
+        cursor = conn.cursor()
+        sql = "SELECT * FROM REMEDIOS"
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        for row in rows:
+            print(f'ID: {row[0]} | Nome: {row[1]} | Descrição: {row[2]} | Preço: {row[3]} | Quantidade: {row[4]}')
+    except oracledb.Error as e:
+        print(f"Erro ao listar remédios❗: {e}")
+        print(f'Mensagem de erro: {e}')
+    finally:
+        print("Fechando a opção...")
+        conn.close()
+# Lista todos os remédios cadastrados na tabela REMEDIOS
 
 # ------------------- BUSCA POR ID -------------------
 def buscar_paciente_por_id(id_paciente):
@@ -308,6 +383,27 @@ def buscar_exame_por_id(id_exame):
         print("Fechando a opção ...")
         conn.close()
 # Busca um exame específico pelo ID na tabela EXAMES
+
+def buscar_remedio_por_id(id_remedio):
+    print('\n-------- Buscando um remédio na tabela REMEDIOS pelo ID --------')
+    conn = get_conexao()
+    if not conn:
+        return
+    try:
+        cursor = conn.cursor()
+        sql = "SELECT * FROM REMEDIOS WHERE id_remedio = :id_remedio"
+        cursor.execute(sql, {'id_remedio': id_remedio})
+        row = cursor.fetchone()
+        if row:
+            print(f'ID: {row[0]} | Nome: {row[1]} | Descrição: {row[2]} | Preço: {row[3]} | Quantidade: {row[4]}')
+        else:
+            print(f'Remédio com ID {id_remedio} não encontrado.')
+    except oracledb.Error as e:
+        print(f"Erro ao buscar remédio❗: {e}")
+    finally:
+        print("Fechando a opção ...")
+        conn.close()
+# Busca um remédio específico pelo ID na tabela REMEDIOS
 
 # ------------------- ATUALIZAÇÃO DE DADOS -------------------
 def atualizar_pacientes(id_paciente):
@@ -454,9 +550,60 @@ def atualizar_exames(id_exame):
         conn.close()
 # Atualiza os dados de um exame existente na tabela EXAMES
 
+def atualizar_remedios(id_remedio):
+    conn = get_conexao()
+    if not conn:
+        return
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT nome, descricao, preco, quantidade FROM REMEDIOS WHERE id_remedio = :id", {'id': id_remedio}
+        )
+        remedio = cursor.fetchone()
+        if not remedio:
+            print(f"Remédio com ID {id_remedio} não encontrado.")
+            return
+        nome_atual, descricao_atual, preco_atual, quantidade_atual = remedio
+    except oracledb.Error as e:
+        print(f"Erro ao buscar remédio❗: {e}")
+        return
+    finally:
+        conn.close()
+
+    novo_nome = input(f"Nome atual: {nome_atual} | Novo nome: ") or nome_atual
+    nova_descricao = input(f"Descrição atual: {descricao_atual} | Nova descrição: ") or descricao_atual
+    novo_preco = input(f"Preço atual: {preco_atual} | Novo preço: ") or preco_atual
+    nova_quantidade = input(f"Quantidade atual: {quantidade_atual} | Nova quantidade: ") or quantidade_atual
+
+    conn = get_conexao()
+    try:
+        cursor = conn.cursor()
+        sql = """
+            UPDATE REMEDIOS
+            SET nome = :nome,
+                descricao = :descricao,
+                preco = :preco,
+                quantidade = :quantidade
+            WHERE id_remedio = :id
+        """
+        cursor.execute(sql, {
+            'id': id_remedio,
+            'nome': novo_nome,
+            'descricao': nova_descricao,
+            'preco': float(novo_preco),
+            'quantidade': int(nova_quantidade)
+        })
+        conn.commit()
+        print(f"\nRemédio {novo_nome} atualizado com sucesso✅!")
+    except oracledb.Error as e:
+        print(f"Erro ao atualizar remédio❗: {e}")
+    finally:
+        conn.close()
+# Atualiza os dados de um remédio existente na tabela REMEDIOS
+
 # ------------------- DELEÇÃO DE DADOS -------------------
 def deletar_pacientes(id_paciente):
-    print('\n------------ Deletando um paciente na tabela PACIENTES ---------------')
+    print('\n================ Deletando um paciente na tabela PACIENTES ================')
     conn = get_conexao()
     if not conn:
         return
@@ -474,7 +621,7 @@ def deletar_pacientes(id_paciente):
 # Remove um paciente da tabela PACIENTES
 
 def deletar_consulta(id_consulta):
-    print('\n----------------- Deletando uma consulta na tabela CONSULTAS ----------------')
+    print('\n============= Deletando uma consulta na tabela CONSULTAS ================')
     conn = get_conexao()
     if not conn:
         return
@@ -492,7 +639,7 @@ def deletar_consulta(id_consulta):
 # Remove uma consulta da tabela CONSULTAS
 
 def deletar_exame(id_exame):
-    print('\n----------------- Deletando um exame na tabela EXAMES ----------------')
+    print('\n================= Deletando um exame na tabela EXAMES =================')
     conn = get_conexao()
     if not conn:
         return
@@ -509,22 +656,40 @@ def deletar_exame(id_exame):
         conn.close()
 # Remove um exame da tabela EXAMES
 
+def deletar_remedio(id_remedio):
+    print('\n================ Deletando um remédio na tabela REMEDIOS ================')
+    conn = get_conexao()
+    if not conn:
+        return
+    try:
+        cursor = conn.cursor()
+        sql = "DELETE FROM REMEDIOS WHERE id_remedio = :id_remedio"
+        cursor.execute(sql, {'id_remedio': id_remedio})
+        conn.commit()
+        print(f'Remédio com ID {id_remedio} deletado com sucesso✅!')
+    except oracledb.Error as e:
+        print(f"Erro ao deletar remédio❗: {e}")
+    finally:
+        print("Fechando a opção ...")
+        conn.close()
+
 # ------------------- MENU INTERATIVO -------------------
 def main():
     while True:
-        print("\n==================================================================================")
-        print("👨‍⚕️----------------------------- MENU PRINCIPAL --------------------------------🩺")
-        print("==================================================================================")
-        print("-----Menu de opções para gerenciar o banco de dados de um consultório médico.-----")
+        print("\n=======================================================================================================================================================")
+        print("👨‍⚕️----------------------------------------------------------------- MENU PRINCIPAL -------------------------------------------------------------------🩺")
+        print("=========================================================================================================================================================")
+        print(">>>>Menu de opções para gerenciar o banco de dados de um consultório médico.<<<<")
         print("\nEscolha a tabela que deseja editar:")
-        print("\n[1]. TABELA DE PACIENTES")
-        print("\n[2]. TABELA DE CONSULTAS")
-        print("\n[3]. TABELA DE EXAMES")
-        print("\n[0]. Sair")
+        print("\n[1]. TABELA DE PACIENTES📋")
+        print("\n[2]. TABELA DE CONSULTAS🗓️")
+        print("\n[3]. TABELA DE EXAMES🧪")
+        print("\n[4]. TABELA DE REMÉDIOS💊")
+        print("\n[0]. Sair🚪")
         try:
             escolha = int(input("\nEscolha uma opção: "))
-            if escolha not in [0, 1, 2, 3, 4, 5]:
-                print("\nOpção inválida! Por favor, escolha uma opção entre 0 e 5.")
+            if escolha not in [0, 1, 2, 3, 4]:
+                print("\nOpção inválida! Por favor, escolha uma opção entre 0 e 4.")
                 continue
         except ValueError:
             print("\nErro: Por favor, digite um número válido!")
@@ -535,16 +700,17 @@ def main():
             menu_consultas()
         elif escolha == 3:
             menu_exames()
+        elif escolha == 4:
+            menu_remedios()
         elif escolha == 0:
             print("Saindo...")
             break
         else:
             print("Opção inválida. Tente novamente.")
 
-
 def menu_pacientes():
     while True:
-        print("\n-------------------------------- PACIENTES -------------------------------------")
+        print("\n============================= PACIENTES📋 =================================")
         print("\n[1]. Inserir paciente")
         print("[2]. Listar pacientes")
         print("[3]. Buscar paciente por ID")
@@ -600,7 +766,7 @@ def menu_pacientes():
 
 def menu_consultas():
     while True:
-        print("\n------------------------------ CONSULTAS ------------------------------------")
+        print("\n=========================== CONSULTAS🗓️ =============================")
         print("\n[1]. Inserir consulta")
         print("[2]. Listar consultas")
         print("[3]. Buscar consulta por ID")
@@ -633,19 +799,19 @@ def menu_consultas():
                 id_cons = int(input("ID da consulta: "))
                 buscar_consulta_por_id(id_cons)
             except ValueError:
-                print("\nDigite apenas números")
+                print("\nDigite apenas números⚠️")
         elif escolha == 4:
             try:
                 id_cons = int(input("ID da consulta: "))
                 atualizar_consultas(id_cons)
             except ValueError:
-               print("\nDigite apenas números")
+               print("\nDigite apenas números⚠️")
         elif escolha == 5:
             try:
                 id_cons = int(input("ID da consulta: "))
                 deletar_consulta(id_cons)
             except ValueError:
-                print("\nDigite apenas números")
+                print("\nDigite apenas números⚠️")
         elif escolha == 0:
             break
         else:
@@ -654,7 +820,7 @@ def menu_consultas():
 
 def menu_exames():
     while True:
-        print("\n-------------------------------- EXAMES -------------------------------------")
+        print("\n============================== EXAMES🧪 ================================")
         print("\n[1]. Inserir exame")
         print("[2]. Listar exames")
         print("[3]. Buscar exame por ID")
@@ -687,7 +853,7 @@ def menu_exames():
                 id_exame = int(input("ID do exame: "))
                 buscar_exame_por_id(id_exame)
             except ValueError:
-                print("\nErro: Digite apenas numeros")
+                print("\nErro: Digite apenas numeros⚠️")
         elif escolha == 4:
             id_exame = int(input("ID do exame: "))
             print("\nPara as opções que NAO deseja atualizar, deixe o campo vazio.")
@@ -697,11 +863,65 @@ def menu_exames():
                 id_exame = int(input("ID do exame: "))
                 deletar_exame(id_exame)
             except ValueError:
-                print("\nErro: Digite apenas numeros")
+                print("\nErro: Digite apenas numeros⚠️")
         elif escolha == 0:
             break
         else:
             print("Opção inválida.")
 # Submenu para gerenciar EXAMES (inserir, listar, buscar, atualizar, deletar)
+
+def menu_remedios():
+    while True:
+        print("\n============================= REMÉDIOS💊 =============================")
+        print("\n[1]. Inserir remédio")
+        print("[2]. Listar remédios")
+        print("[3]. Buscar remédio por ID")
+        print("[4]. Atualizar remédio")
+        print("[5]. Deletar remédio")
+        print("[0]. Voltar")
+        try:
+            escolha = int(input("\nEscolha uma opção: "))
+            if escolha not in [0, 1, 2, 3, 4, 5]:
+                print("\nOpção inválida! Por favor, escolha uma opção entre 0 e 5.")
+                continue
+        except ValueError:
+            print("\nErro: Por favor, digite um número válido!")
+            continue
+        if escolha == 1:
+            try:
+                nome = str(input("Nome do remédio: "))
+                descricao = str(input("Descrição: "))
+                preco = float(input("Preço (00.00): "))
+                quantidade = int(input("Quantidade: "))
+                inserir_remedio(nome, descricao, preco, quantidade)
+            except ValueError:
+                print("\nAs informações de Usuário são Inválidas! \nPor favor Siga o padrão!")
+        elif escolha == 2:
+            try:
+                listar_remedios()
+            except ValueError:
+                print("⚠️ Por favor insira um número valido.")
+        elif escolha == 3:
+            try:
+                id_remedio = int(input("ID do remédio: "))
+                buscar_remedio_por_id(id_remedio)
+            except ValueError:
+                print("⚠️ Por favor, insira um número válido para o ID do remédio.")
+        elif escolha == 4:
+            try:
+                id_remedio = int(input("ID do remédio: "))
+                print("\nPara as opções que NAO deseja atualizar, deixe o campo vazio.")
+                atualizar_remedios(id_remedio)
+            except ValueError:
+                print("\n⚠️ Por favor, insira um número válido para o ID do remédio")
+        elif escolha == 5:
+            try:
+                id_remedio = int(input("ID do remédio: "))
+                deletar_remedio(id_remedio)
+            except ValueError:
+                print("\n⚠️ Por favor, insira um número válido para o ID do remédio")
+        elif escolha == 0:
+            break
+# Submenu para gerenciar REMÉDIOS (inserir, listar, buscar, atualizar, deletar)
 
 main()
