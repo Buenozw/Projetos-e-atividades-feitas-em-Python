@@ -1,5 +1,5 @@
 """
---CP05 --
+-------- CP05 ---------
 --TIPO: PROVA PRÁTICA--
 
 --NOMES DOS INTEGRANTES
@@ -10,6 +10,7 @@
 --DESCRIÇÃO DO PROGRAMA
 
 
+
 --CONFIGURAÇÕES DO PROGRAMA
 --Processador : AMD Ryzen 7 5700
 --RAM : 24 GB
@@ -18,7 +19,6 @@
 --Placa de vídeo : AMD Radeon RX 5500 XT
 
 """
-
 import time
 import sys
 import random
@@ -28,31 +28,39 @@ import matplotlib.pyplot as plt
 # -------FUNÇÕES DE ORDENAÇÃO-------
 
 def bubble_sort(lista):
-    n = len(lista)
-    for i in range(n - 1):
-        for j in range(0, n - i - 1):
+    tam = len(lista)
+    for i in range(tam - 1):
+        troca = False  # flag de controle
+        for j in range(0, tam - i - 1):
             if lista[j] > lista[j + 1]:
+                # realiza a troca
+                troca = True
+                # atribuição paralela
                 lista[j], lista[j + 1] = lista[j + 1], lista[j]
-    return lista
+        # se não for necessario realizar a troca, o programa
+        # irá sair do loop
+        if not troca:
+            return
 
 def selection_sort(lista):
     n = len(lista)
     for i in range(n):
-        min_idx = i
-        for j in range (i + 1, n):
-            if lista[j] < lista[min_idx]:
-                min_idx = j
-        lista[i], lista[min_idx] = lista[min_idx], lista[i]
+        indice_minimo = i
+        for j in range(i + 1, n):
+            if lista[j] < lista[indice_minimo]:
+                indice_minimo = j
+        lista[i], lista[indice_minimo] = lista[indice_minimo], lista[i]
     return lista
 
 def insertion_sort(lista):
+    n = len(lista)
     for i in range(1, len(lista)):
-        chave = lista[i]
+        pivo = lista[i]
         j = i - 1
-        while j >= 0 and chave < lista[j]:
+        while j >= 0 and pivo < lista[j]:
             lista[j + 1] = lista[j]
             j -= 1
-        lista[j + 1] = chave
+        lista[j + 1] = pivo
     return lista
 
 def merge_sort(lista):
@@ -99,11 +107,13 @@ def ler_lista_arquivo(arquivo_entrada):
     with open(arquivo_entrada, 'r') as f:
         conteudo = f.read()
         return [int(x) for x in conteudo.split()]
-    
+
 def salvar_lista_arquivo(arquivo_saida, lista):
     with open(arquivo_saida, 'w') as f:
+        f.write("===LISTA ORDENADA=== \n")
         for item in lista:
-            f.write(f"{item}\n")
+            f.write(f"\n{item}")
+        f.write(f"\n===FIM DA LISTA ORDENADA===\n")
 
 # ------FUNÇÕES DE CRONOMETRAGEM-------
 
@@ -118,11 +128,12 @@ def medir_tempo(algoritmo, n):
     media = sum(tempos) / len(tempos)
     return tempos, media
 
+
 # ----------- EXECUÇÃO DOS TESTES -------------
 
 def executar_testes():
     tamanhos = [1000, 5000, 10000, 25000, 50000]
-    algoritimos = {
+    algoritmos = {
         'Bubble Sort': bubble_sort,
         'Selection Sort': selection_sort,
         'Insertion Sort': insertion_sort,
@@ -131,54 +142,54 @@ def executar_testes():
 
     resultados = []
 
-    for nome, func in algoritimos.items():
+    for nome, func in algoritmos.items():
         for n in tamanhos:
             tempos, media = medir_tempo(func, n)
             resultados.append({
-                'Algoritimos': nome,
+                'Algoritmos': nome,
                 'N': n,
-                'Amostra 1 (s)': tempos[0],
-                'Amostra 2 (s)': tempos[1],
-                'Amostra 3 (s)': tempos[2],
+                'Amostra 1(s)': tempos[0],
+                'Amostra 2(s)': tempos[1],
+                'Amostra 3(s)': tempos[2],
                 'Média (s)': media
             })
             print(f"{nome:<15} | N={n:<6} | Média: {media:.4f}s")
 
     # Cria DataFrame com os resultados
     df = pd.DataFrame(resultados)
-    print("\n=== TABELA DE RESULTADOS ===")
+    print("\n======================= TABELA DE RESULTADOS ============================\n")
     print(df.to_string(index=False))
 
-# ------------------ GRÁFICO COMPARATIVO ------------------
+    # ------------------ GRÁFICO COMPARATIVO ------------------
 
     plt.figure(figsize=(10, 6))
-    for nome in algoritimos.keys():
-        df_alg = df[df['Algoritimos'] == nome]
+    for nome in algoritmos.keys():
+        df_alg = df[df['Algoritmos'] == nome]
         plt.plot(df_alg['N'], df_alg['Média (s)'], marker='o', label=nome)
 
     plt.title('Comparativo de Tempo Médio de Execução')
-    plt.xlabel('Tamanho da Lista (N)')
-    plt.ylabel('Tempo Médio (segundos)')
+    plt.xlabel('Tamanho da Lista(N)')
+    plt.ylabel('Tempo Médio(segundos)')
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.show()
 
     return df
-    
+
 # -----Programa principal-----
 
 def main():
-    print("======== MENU DE ALGORITIMOS DE ORDENAÇÃO ========")
+    print("\n============ MENU DE ALGORITIMOS DE ORDENAÇÃO =================")
     print("Menu interativo para o usuário escolher o algoritmo de ordenação.")
-    print("[1]. Bubble Sort")
-    print("[2]. Selection Sort")  
-    print("[3]. Insertion Sort")
-    print("[4]. Merge Sort")
+    print("\n[1] Bubble Sort")
+    print("[2] Selection Sort")
+    print("[3] Insertion Sort")
+    print("[4] Merge Sort")
 
-    escolha = input("Escolha o algorítimo de ordenação (1-4): ")
+    escolha = input("\nEscolha o algorítimo de ordenação (1-4): ")
 
-    arquivo_entrada = input("Digite o nome do arquivo de entrada: ")
+    arquivo_entrada = input("\nDigite o nome do arquivo de entrada: ")
     arquivo_saida = input("Digite o nome do arquivo de saída: ")
 
     lista = ler_lista_arquivo(arquivo_entrada)
@@ -195,12 +206,14 @@ def main():
         print("Escolha inválida!, por favor selecione uma opção entre 1 e 4.")
         sys.exit(1)
 
+    lista_ordenada = bubble_sort(lista)
     salvar_lista_arquivo(arquivo_saida, lista_ordenada)
-    print(f"Lista ordenada salva em {arquivo_saida}")
+    print("\nLista ordenada salva em {arquivo_saida}")
 
 # EXECUÇÃO DO PROGRAMA
 if __name__ == "__main__":
-    df_resultados = executar_testes()
+    executar_testes()
+    
 
 
-
+ 
