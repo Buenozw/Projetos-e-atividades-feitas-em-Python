@@ -7,7 +7,7 @@ Passo 1: Instalar biblioteca requests
 -- pip install requests
 '''
 
-def buscar_cep(cep):
+def consultar_cep(cep):
 
     url = f'https://viacep.com.br/ws/{cep}/json/'
 
@@ -34,5 +34,16 @@ def buscar_cep(cep):
     except Exception as e:
         print(f'[ERRO] Erro...: {e}')
         return None
+    
+#Programa principal
+endereco = consultar_cep('01311000')
+print(f' --- Resultado da consulta --- ')
+print(f'CEP: {endereco.get("cep")}')
+print(f'Logradouro: {endereco.get("logradouro")}')
+print(f'Bairro: {endereco.get("bairro")}')
+print(f'Cidade/UF: {endereco.get("localidade")}\{endereco.get["uf"]}')
+print(f'--- Fim da consulta ---')
+
+
         
     
